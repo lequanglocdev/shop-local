@@ -102,18 +102,23 @@ const ProductsManagement = () => {
     data: sizesData,
     isLoading: isFetchingSizes,
     error: fetchSizesError,
-  } = useListSizesQuery({ pageNo: 1, pageSize: 50 });
+  } = useListSizesQuery({ pageNo: 1, pageSize: 100 });
   const {
     data: imagesData,
     isLoading: isFetchingImages,
     error: fetchImagesError,
-  } = useListImagesQuery({ pageNo: 1, pageSize: 50 });
-
+  } = useListImagesQuery({ pageNo: 1, pageSize: 100 });
+  console.log("imagesData ở component:", imagesData);
   // Sử dụng RTK Query mutations
   const [addProduct] = useAddProductMutation();
   const [updateProduct] = useUpdateProductMutation();
   const [deleteProduct] = useDeleteProductMutation();
 
+  useEffect(() => {
+    if (imagesData) {
+      console.log("Danh sách hình ảnh:", imagesData);
+    }
+  }, [imagesData]);
   // Update products when productsData or selectedCategory changes
   useEffect(() => {
     if (productsData?.items) {
@@ -344,9 +349,10 @@ const ProductsManagement = () => {
               alt={image.fileName}
               style={{
                 width: 30,
-                height: 30,
+                height: 100,
                 objectFit: "cover",
                 marginRight: 5,
+                backgroundColor: "red",
               }}
             />
           ))}
@@ -445,8 +451,8 @@ const ProductsManagement = () => {
       errors.colors = "Phải chọn ít nhất một màu sắc";
     if (!product.sizeIds || product.sizeIds.length === 0)
       errors.sizeIds = "Phải chọn ít nhất một kích thước";
-    // if (!product.imageIds || product.imageIds.length === 0)
-    //   errors.imageIds = "Phải chọn ít nhất một hình ảnh";
+    if (!product.imageIds || product.imageIds.length === 0)
+      errors.imageIds = "Phải chọn ít nhất một hình ảnh";
     return errors;
   };
 
@@ -845,7 +851,7 @@ const ProductsManagement = () => {
             )}
           </FormControl>
           <FormControl fullWidth sx={{ mt: 2 }} required>
-            <InputLabel>Hình ảnh</InputLabel>
+            <InputLabel>Hình ảnh </InputLabel>
             <Select
               multiple
               value={newProduct.imageIds || []}

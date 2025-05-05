@@ -43,15 +43,6 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const {
-    data: myInfo,
-    isLoading: isMyInfoLoading,
-    error: myInfoError,
-    refetch: refetchMyInfo,
-  } = useGetMyInfoQuery(undefined, {
-    skip: !userData,
-  });
-
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   const handleMouseDownPassword = (event) => {
@@ -62,109 +53,48 @@ const Login = () => {
     event.preventDefault();
   };
 
-  const handleShowSnackbar = (success, message = "") => {
-    setSnackbar({
-      open: true,
-      message:
-        message || (success ? "Đăng nhập thành công" : "Đăng nhập thất bại !"),
-      severity: success ? "success" : "error",
-    });
-  };
-
-  useEffect(() => {
-    if (location.state?.message) {
-      setSnackbar({
-        open: true,
-        message: location.state.message || "",
-        severity: location.state.severity || "success",
-      });
-    }
-    window.history.replaceState({}, document.title);
-  }, [location]);
-
-  useEffect(() => {
-    if (myInfoError) {
-      // Xử lý lỗi khi gọi /v1/auth/myInfo
-      handleShowSnackbar(false, "Không thể lấy thông tin người dùng!");
-      return;
-    }
-
-    if (myInfo && userData) {
-      const role = myInfo?.result?.roles?.[0]?.name || "USER";
-      const updatedUserData = {
-        ...userData,
-        result: {
-          ...userData.result,
-          role: role,
-        },
-      };
-
-      dispatch(setUser(updatedUserData));
-
-      // Hiển thị thông báo thành công trước khi điều hướng
-      handleShowSnackbar(true);
-
-      setTimeout(() => {
-        if (role === "ADMIN") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/");
-        }
-      }, 1500);
-    }
-  }, [myInfo, myInfoError, userData, dispatch, navigate]);
-
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const onSubmit = async (data) => {
-    setError("");
+  const handleLogin = async (data) => {
     try {
-      // Gọi API đăng nhập
       const response = await axios.post(
         "http://localhost:8080/adamstore/v1/auth/login",
-        {
-          email: data.email,
-          password: data.password,
-        }
+        data
       );
 
-      const { accessToken, refreshToken, email, authenticated } =
-        response.data.result;
+      const result = response.data.result;
+      const { accessToken, refreshToken, roles, email } = result;
 
+      // Lưu token
       localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
 
-      // Gọi API lấy thông tin người dùng
-      const myInfoResponse = await axios.get(
-        "http://localhost:8080/adamstore/v1/auth/myInfo",
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      // Cập nhật Redux store
+      dispatch(setUser({ email, roles }));
 
-      const role = myInfoResponse.data.result.roles?.[0]?.name || "USER";
+      // Hiển thị thông báo thành công
+      setSnackbar({
+        open: true,
+        message: "Đăng nhập thành công!",
+        severity: "success",
+      });
 
-      // Cập nhật userData
-      const newUserData = {
-        code: response.data.code,
-        message: response.data.message,
-        result: {
-          accessToken,
-          refreshToken,
-          authenticated,
-          email,
-          role,
-        },
-      };
-
-      setUserData(newUserData);
-      handleShowSnackbar(true);
-    } catch (error) {
-      console.error("Login failed:", error);
-      handleShowSnackbar(false, "Đăng nhập thất bại!");
+      // Điều hướng theo vai trò
+      const role = roles?.[0]?.name;
+      if (role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
+    } catch (err) {
+      setError("Email hoặc mật khẩu không đúng.");
+      setSnackbar({
+        open: true,
+        message: "Đăng nhập thất bại!",
+        severity: "error",
+      });
     }
   };
 
@@ -206,7 +136,7 @@ const Login = () => {
             <Stack
               sx={{ padding: "0px 36px" }}
               component={"form"}
-              onSubmit={handleSubmit(onSubmit)}>
+              onSubmit={handleSubmit(handleLogin)}>
               {error && <p style={{ color: "red" }}>{error}</p>}
               <Stack className={styles.formLabelInput}>
                 <ThemeProvider theme={customTheme(outerTheme)}>
@@ -214,7 +144,6 @@ const Login = () => {
                     id="email"
                     label="Email"
                     variant="outlined"
-                    disabled={isLoginLoading || isMyInfoLoading}
                     {...register("email", {
                       required: "Email không được để trống",
                       pattern: {
@@ -236,7 +165,6 @@ const Login = () => {
                     label="Mật khẩu"
                     type={showPassword ? "text" : "password"}
                     variant="outlined"
-                    disabled={isLoginLoading || isMyInfoLoading}
                     {...register("password", {
                       required: "Mật khẩu không được để trống",
                       minLength: {
@@ -256,8 +184,7 @@ const Login = () => {
                             onClick={handleClickShowPassword}
                             onMouseDown={handleMouseDownPassword}
                             onMouseUp={handleMouseUpPassword}
-                            edge="end"
-                            disabled={isLoginLoading || isMyInfoLoading}>
+                            edge="end">
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
@@ -285,13 +212,8 @@ const Login = () => {
                     backgroundColor: "#333",
                   },
                 }}
-                type="submit"
-                disabled={isLoginLoading || isMyInfoLoading}>
-                {isLoginLoading || isMyInfoLoading ? (
-                  <CircularProgress size={34} color="inherit" />
-                ) : (
-                  "ĐĂNG NHẬP"
-                )}
+                type="submit">
+                ĐĂNG NHẬP
               </Button>
             </Stack>
 

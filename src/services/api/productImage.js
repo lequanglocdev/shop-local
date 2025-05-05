@@ -37,13 +37,14 @@ export const productImageApi = baseApi.injectEndpoints({
     }),
 
     listImages: builder.query({
-      query: () => ({
+      query: ({ pageNo = 1, pageSize = 100 } = {}) => ({
         url: `/v1/file/all`,
         method: "GET",
+        params: { pageNo, pageSize },
       }),
       providesTags: [TAG_KEYS.PRODUCT_IMAGE],
       transformResponse: (response) => {
-        console.log("Raw images response:", response);
+        console.log("Full response from image API:", response);
         const items = Array.isArray(response.result?.items)
           ? response.result.items
           : Array.isArray(response)
