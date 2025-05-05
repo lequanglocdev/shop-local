@@ -8,6 +8,14 @@
     height: 380px;
     object-fit: cover;
 }
+.wrapperCategory{
+    margin: 40px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 
 .contentImg {
     width: 100%;

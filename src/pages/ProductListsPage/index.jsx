@@ -1,38 +1,32 @@
 import { Typography, Box, Card, CardContent, CardMedia } from "@mui/material";
+import axios from "axios";
 import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 
 const ProductLists = () => {
+  const [searchParams] = useSearchParams();
+  const categoryId = searchParams.get("category");
   const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        setIsLoading(true);
-        const res = await fetch(
-          "http://localhost:8080/adamstore/v1/products?pageNo=1&pageSize=100",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await res.json();
-        setProducts(data.result.items || []);
-      } catch (error) {
-        console.error("Failed to fetch products", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!categoryId) return;
 
-    fetchProducts();
-  }, []);
-
-  if (isLoading) {
-    return <Typography textAlign="center">Đang tải sản phẩm...</Typography>;
-  }
+    const token = localStorage.getItem("accessToken");
+    axios
+      .get(
+        `http://localhost:8080/adamstore/v1/categories/${categoryId}/products`,
+        {
+          params: { pageNo: 1, pageSize: 10 },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((res) => {
+        setProducts(res.data.result.items);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi lấy sản phẩm:", err);
+      });
+  }, [categoryId]);
 
   return (
     <Box>
@@ -41,24 +35,31 @@ const ProductLists = () => {
       </Typography>
       <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
         {products.map((product) => (
-          <Card key={product.id} sx={{ width: 250 }}>
-            {product.productImages && product.productImages.length > 0 && (
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.productImages[0].imageUrl}
-                alt={product.name}
-              />
-            )}
-            <CardContent>
-              <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                {product.name}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Giá: {product.price?.toLocaleString() + "đ" || "Đang cập nhật"}
-              </Typography>
-            </CardContent>
-          </Card>
+          <Link
+            key={product.id}
+            to={`/product-detail/${product.id}`}
+            state={{ imageUrl: product.productImages?.[0]?.imageUrl }}
+            style={{ textDecoration: "none", color: "inherit" }}>
+            <Card sx={{ borderRadius: "6px", cursor: "pointer", width: 270 }}>
+              {product.productImages?.[0]?.imageUrl && (
+                <CardMedia
+                  component="img"
+                  height="400"
+                  image={product.productImages[0].imageUrl}
+                  alt={product.name}
+                />
+              )}
+              <CardContent>
+                <Typography variant="subtitle1" sx={{ fontStyle: "italic" }}>
+                  {product.description}
+                </Typography>
+                <Typography style={{ fontSize: "16px" }} color="text.secondary">
+                  Giá:{" "}
+                  {product.price?.toLocaleString() + "đ" || "Đang cập nhật"}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </Box>
     </Box>

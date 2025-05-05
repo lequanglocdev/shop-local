@@ -14,16 +14,42 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 
 import { resetStore } from "@/store";
-import { selectUser } from "@/store/redux/user/reducer";
 
 const AuthButton = () => {
+  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const storedUser = useSelector(selectUser);
-  console.log("storedUser:", storedUser);
-
   const [anchorEl, setAnchorEl] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    const fetchUserInfo = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:8080/adamstore/v1/auth/myInfo",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(">>>data", data);
+          setUserInfo(data);
+        } else {
+          // Token sai hoặc hết hạn
+          localStorage.removeItem("token");
+        }
+      } catch (err) {
+        console.error("Lỗi khi lấy thông tin user:", err);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -33,34 +59,59 @@ const AuthButton = () => {
     setAnchorEl(null);
   };
 
-  const handleLogout = () => {
-    dispatch(resetStore());
-    handleMenuClose();
-    navigate("/");
+  const handleLogout = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+
+    try {
+      const res = await fetch(
+        "http://localhost:8080/adamstore/v1/auth/logout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accessToken: token,
+          }),
+        }
+      );
+
+      if (res.ok) {
+        localStorage.removeItem("token");
+        setUserInfo(null);
+        navigate("/login");
+      } else {
+        console.error("Logout thất bại");
+      }
+    } catch (error) {
+      console.error("Lỗi khi logout:", error);
+    }
   };
 
   return (
     <Stack direction="row" alignItems="center">
-      {storedUser ? (
+      {userInfo ? (
         <>
           <Stack
             direction="row"
             alignItems="center"
             onClick={handleMenuOpen}
-            sx={{ cursor: "pointer" }}
-          >
-            <Avatar src={storedUser.avatarUrl} alt={storedUser.result.email} />
+            sx={{ cursor: "pointer" }}>
+            <Avatar src={userInfo.avatarUrl} alt="" />
             <Typography sx={{ marginLeft: "5px" }}>
-              {storedUser.result.email}
+              {userInfo.result.name}
             </Typography>
           </Stack>
 
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={() => navigate("/accountInform/profile")}>
+            onClose={handleMenuClose}>
+            <MenuItem
+              onClick={() =>
+                navigate(`/accountInform/profile/${userInfo.result.id}`)
+              }>
               Thông tin tài khoản
             </MenuItem>
             <MenuItem onClick={() => navigate("/myOrders")}>
@@ -75,8 +126,7 @@ const AuthButton = () => {
           direction={"row"}
           spacing={2}
           display={"flex"}
-          alignItems={"center"}
-        >
+          alignItems={"center"}>
           <Button
             variant="outlined"
             sx={{
@@ -90,8 +140,7 @@ const AuthButton = () => {
               },
             }}
             component={Link}
-            to="/login"
-          >
+            to="/login">
             Đăng nhập
           </Button>
 
@@ -108,8 +157,7 @@ const AuthButton = () => {
               },
             }}
             component={Link}
-            to="/register"
-          >
+            to="/register">
             Đăng ký
           </Button>
         </Stack>

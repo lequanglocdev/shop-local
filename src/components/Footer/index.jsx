@@ -43,7 +43,7 @@ const Footer = () => {
     },
     {
       title: "Theo dõi",
-      links: ["Facebook", "LinkedIn", "Instagram", "X"]
+      links: ["Facebook", "LinkedIn", "Instagram", "X"],
     },
   ];
 
@@ -76,8 +76,7 @@ const Footer = () => {
           paddingTop: 40,
           paddingBottom: 16,
           borderTop: "1px solid #575655",
-        }}
-      >
+        }}>
         Copyright @2025 by Fashion Store. All Rights Reserved.
       </span>
     </Stack>

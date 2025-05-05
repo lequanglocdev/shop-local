@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import AccountInform from "./layouts/AccountInform";
 import Address from "./pages/AddressPage";
-import ChangePassword from "./pages/ChangePassword";
+// import ChangePassword from "./pages/ChangePassword";
 import Profile from "./pages/ProfilePage";
 
 import ScrollToTop from "@/components/ScrollToTop";
@@ -80,18 +80,14 @@ const App = () => {
           <Route index element={<ProductLists />} />
         </Route>
 
-        <Route path="/productDetails/:id" element={<ProductDetails />} />
+        <Route path="/product-detail/:id" element={<ProductDetails />} />
         <Route path="/shippingMethod" element={<ShippingMethod />} />
         <Route path="/orderConfirmation" element={<OrderConfirmation />} />
 
         {/* Route user */}
         <Route path="/accountInform" element={<AccountInform />}>
-          <Route path="/accountInform/profile" element={<Profile />} />
-          <Route
-            path="/accountInform/changePassword"
-            element={<ChangePassword />}
-          />
-          <Route path="/accountInform/address" element={<Address />} />
+          <Route path="profile/:id" element={<Profile />} />
+          <Route path="address/:id" element={<Address />} />
         </Route>
 
         <Route path="/myOrders" element={<MyOrders />} />

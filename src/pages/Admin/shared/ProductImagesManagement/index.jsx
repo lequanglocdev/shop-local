@@ -17,28 +17,25 @@ const ProductImagesManagement = () => {
   const [images, setImages] = useState([]);
 
   // Hàm fetch danh sách ảnh
-  const fetchImages = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const res = await fetch(
-        "http://localhost:8080/adamstore/v1/file/all?pageNo=1&pageSize=100",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await res.json();
-      if (data.code === 200) {
-        setImages(data.result?.items);
-      }
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách ảnh", err);
-    }
-  };
 
   useEffect(() => {
-    fetchImages();
+    const token = localStorage.getItem("accessToken");
+
+    fetch("http://localhost:8080/adamstore/v1/file/all?pageNo=1&pageSize=100", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Gửi token ở đây
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("DATA FETCHED:", data);
+        setImages(data.result.items);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi fetch màu sắc:", err);
+      });
   }, []);
 
   // Hàm xử lý upload ảnh
@@ -46,7 +43,7 @@ const ProductImagesManagement = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     const formData = new FormData();
     formData.append("fileImage", file); // tên field là "image"
 
@@ -72,7 +69,7 @@ const ProductImagesManagement = () => {
 
   // Hàm xử lý xoá ảnh
   const handleDelete = async (id) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("accessToken");
     try {
       const res = await fetch(
         `http://localhost:8080/adamstore/v1/file/delete/${id}`,
@@ -94,17 +91,20 @@ const ProductImagesManagement = () => {
 
   return (
     <DashboardLayoutWrapper>
-      <Typography variant="h5" gutterBottom>
-        Quản lý Hình ảnh Sản phẩm
-      </Typography>
-
-      <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          gap: 2,
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}>
+        <Typography variant="h5" gutterBottom>
+          Quản lý Hình ảnh Sản phẩm
+        </Typography>
         <Button variant="contained" color="primary" component="label">
           Tải lên hình ảnh
           <input type="file" accept="image/*" hidden onChange={handleUpload} />
-        </Button>
-        <Button variant="outlined" color="primary" onClick={fetchImages}>
-          Làm mới
         </Button>
       </Box>
 

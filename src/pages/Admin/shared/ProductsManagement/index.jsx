@@ -114,15 +114,6 @@ const ProductsManagement = () => {
   const [updateProduct] = useUpdateProductMutation();
   const [deleteProduct] = useDeleteProductMutation();
 
-  // Log dữ liệu từ API để kiểm tra
-  useEffect(() => {
-    console.log("Raw Products Data from API:", productsData);
-    console.log("Colors Data from API:", colorsData);
-    console.log("Categories Data from API:", categoriesData);
-    console.log("Sizes Data from API:", sizesData);
-    console.log("Images Data from API:", imagesData);
-  }, [productsData, colorsData, categoriesData, sizesData, imagesData]);
-
   // Update products when productsData or selectedCategory changes
   useEffect(() => {
     if (productsData?.items) {

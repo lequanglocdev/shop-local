@@ -1,15 +1,12 @@
-import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import { useEffect, useState } from "react";
+import { Alert, Container, Snackbar, Stack, Typography } from "@mui/material";
+import { Link, useLocation } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
-
+import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import SwiperProducts from "../../components/SwiperProducts";
-
-import { Alert, Container, Grid, Snackbar, Stack } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
 
 import styles from "./index.module.css";
-import { useEffect, useState } from "react";
 
 const slides = [
   "/src/assets/images/backgroundFashions/backgroundHomePage.jpg",
@@ -18,28 +15,55 @@ const slides = [
   "/src/assets/images/backgroundFashions/backgroundHomePage-3.jpg",
 ];
 
-const categories = [
-  { src: "/src/assets/images/categories/T-shirt.jpg", title: "ÁO THUN" },
-  { src: "/src/assets/images/categories/Shirt.jpg", title: "ÁO SƠ MI" },
-  { src: "/src/assets/images/categories/Jacket.jpg", title: "ÁO KHOÁC" },
-  { src: "/src/assets/images/categories/Trouser.jpg", title: "QUẦN DÀI" },
-  { src: "/src/assets/images/categories/Shorts.jpg", title: "QUẦN SHORTS" },
-  { src: "/src/assets/images/categories/Accessories.jpg", title: "PHỤ KIỆN" },
-];
+// Ánh xạ ID danh mục sang đường dẫn ảnh tương ứng
+const categoryImages = {
+  1: "/src/assets/images/categories/quantay.webp", // Quần tây
+  2: "/src/assets/images/categories/T-shirt.jpg", // Áo thun
+  3: "/src/assets/images/categories/Shirt.jpg", // Áo sơ mi
+  4: "/src/assets/images/categories/Accessories.jpg",
+  5: "/src/assets/images/categories/polo.jpeg",
+  6: "/src/assets/images/categories/vest.webp",
+};
 
 const Home = () => {
   const location = useLocation();
+  const [categories, setCategories] = useState([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
+  // Gọi API lấy danh mục khi vào trang
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    fetch(
+      "http://localhost:8080/adamstore/v1/categories?pageNo=1&pageSize=10",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Gửi token ở đây
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("DATA FETCHED:", data);
+        setCategories(data.result.items);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi fetch màu sắc:", err);
+      });
+  }, []);
+
+  // Hiển thị snackbar khi đăng nhập thành công
   useEffect(() => {
     if (location.state?.message) {
       setSnackbar({
         open: true,
-        message: location.state.message || "",
+        message: location.state.message,
         severity: location.state.severity || "success",
       });
     }
@@ -52,7 +76,6 @@ const Home = () => {
 
   return (
     <>
-      {/* Show message when login successfully */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
@@ -66,15 +89,11 @@ const Home = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
       <Swiper
         slidesPerView={1}
         spaceBetween={30}
         centeredSlides={true}
-        autoplay={{
-          delay: 5000,
-          disableOnInteraction: true,
-        }}
+        autoplay={{ delay: 5000, disableOnInteraction: true }}
         pagination={{ clickable: true }}
         navigation={true}
         modules={[Autoplay, Pagination, Navigation]}
@@ -82,55 +101,42 @@ const Home = () => {
         {slides.map((slide, index) => (
           <SwiperSlide key={index}>
             <img
-              style={{
-                objectFit: "cover",
-                height: "100%",
-                width: "100%",
-              }}
+              style={{ objectFit: "cover", height: "100%", width: "100%" }}
               src={slide}
               alt={`Slide ${index + 1}`}
             />
           </SwiperSlide>
         ))}
       </Swiper>
-
-      <Container maxWidth="lg">
-        <Grid container spacing={12}>
-          {categories.map((item, index) => (
-            <Grid
-              sx={{
-                marginTop: 6,
-                marginBottom: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              item
-              xl={4}
-              lg={4}
-              sm={6}
-              xs={12}
-              key={index}>
-              <Link to="/listProducts">
-                <Stack className={styles.wrapperImg}>
-                  <img
-                    className={styles.mediaImg}
-                    src={item.src}
-                    alt={item.title}
-                  />
-                  <Stack className={styles.contentImg}>
-                    <h2
-                      style={{ fontSize: 32, fontWeight: 500, color: "white" }}>
-                      {item.title}
-                    </h2>
-                  </Stack>
+      <Typography
+        sx={{
+          textAlign: "center",
+          marginTop: "20px",
+          fontSize: "30px",
+          fontWeight: "bold",
+        }}
+        variant="body1">
+        Danh mục sản phẩm
+      </Typography>
+      <Container className={styles.wrapperCategory}>
+        {categories.map((item, index) => (
+          <div key={index}>
+            <Link to={`/listProducts?category=${item.id}`}>
+              <Stack className={styles.wrapperImg}>
+                <img
+                  className={styles.mediaImg}
+                  src={categoryImages[item.id] || "/default.jpg"}
+                  alt={item.name}
+                />
+                <Stack className={styles.contentImg}>
+                  <h2 style={{ fontSize: 30, fontWeight: 500, color: "white" }}>
+                    {item.name.toUpperCase()}
+                  </h2>
                 </Stack>
-              </Link>
-            </Grid>
-          ))}
-        </Grid>
-
-        <SwiperProducts />
+              </Stack>
+            </Link>
+          </div>
+        ))}
       </Container>
     </>
   );

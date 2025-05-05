@@ -4,133 +4,98 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import InfoIcon from "@mui/icons-material/Info";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Menu, MenuItem, Button, Box } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const listProducts = [
-  {
-    name: [
-      "ÁO THUN",
-      "ÁO SƠ MI",
-      "ÁO KHOÁC",
-      "QUẦN DÀI",
-      "QUẦN SHORTS",
-      "PHỤ KIỆN",
-    ],
-  },
-];
+import axios from "axios";
 
 const NavMenu = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [categoryMenuAnchorEl, setCategoryMenuAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [categories, setCategories] = useState([]);
   const openCategoryMenu = Boolean(categoryMenuAnchorEl);
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
 
   const handleCategoryMenuOpen = (event) => {
     setCategoryMenuAnchorEl(event.currentTarget);
   };
 
   const handleMenuClose = () => {
-    setAnchorEl(null);
-    setCategoryMenuAnchorEl(null); // Đóng cả hai menu
-  };
+    setCategoryMenuAnchorEl(null);
+  }; //localhost:8080/adamstore/v1/categories?pageNo=1&pageSize=10",
+
+  // Gọi API khi component được mount
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    fetch(
+      "http://localhost:8080/adamstore/v1/categories?pageNo=1&pageSize=10",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Gửi token ở đây
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("DATA FETCHED:", data);
+        setCategories(data.result.items);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi fetch màu sắc:", err);
+      });
+  }, []);
 
   return (
     <Box sx={{ display: "flex", gap: 1 }}>
-      <Button
-        sx={{
-          color: "inherit",
-          "&:hover": {
-            backgroundColor: "#333",
-            color: "#fff",
-          },
-        }}
-        component={Link}
-        to="/">
+      <Button component={Link} to="/" sx={buttonStyle}>
         Trang chủ
       </Button>
-      <Button
-        onClick={handleCategoryMenuOpen}
-        sx={{
-          color: "inherit",
-          "&:hover": {
-            backgroundColor: "#333",
-            color: "#fff",
-          },
-        }}>
+      <Button onClick={handleCategoryMenuOpen} sx={buttonStyle}>
         Danh mục
       </Button>
-
-      <Button
-        sx={{
-          color: "inherit",
-          "&:hover": {
-            backgroundColor: "#333",
-            color: "#fff",
-          },
-        }}
-        component={Link}
-        to="/support">
-        Hổ trợ
+      <Button component={Link} to="/support" sx={buttonStyle}>
+        Hỗ trợ
       </Button>
-
-      <Button
-        sx={{
-          color: "inherit",
-          "&:hover": {
-            backgroundColor: "#333",
-            color: "#fff",
-          },
-        }}
-        component={Link}
-        to="/contact">
+      <Button component={Link} to="/contact" sx={buttonStyle}>
         Liên hệ
       </Button>
+      <Button sx={buttonStyle}>Về chúng tôi</Button>
 
-      <Button
-        sx={{
-          color: "inherit",
-          "&:hover": {
-            backgroundColor: "#333",
-            color: "#fff",
-          },
-        }}>
-        Về chúng tôi
-      </Button>
-
-      {/* Danh mục sản phẩm Menu */}
       <Menu
         anchorEl={categoryMenuAnchorEl}
         open={openCategoryMenu}
         onClose={handleMenuClose}>
-        {listProducts.map((listProduct, index) =>
-          listProduct.name.map((listProductName, idx) => (
-            <MenuItem
-              onClick={handleMenuClose}
-              component={Link}
-              to="/listProducts"
-              sx={{
-                px: 3,
-                py: 1.5,
-                transition: "all 0.2s",
-                "&:hover": {
-                  backgroundColor: "#333",
-                  fontWeight: "bold",
-                  color: "#fff", // màu xanh chủ đạo của MUI
-                },
-              }}
-              key={idx}>
-              {listProductName}
-            </MenuItem>
-          ))
-        )}
+        {categories.map((category) => (
+          <MenuItem
+            key={category.id}
+            onClick={handleMenuClose}
+            component={Link}
+            to={`/listProducts?category=${category.id}`}
+            sx={{
+              px: 3,
+              py: 1.5,
+              transition: "all 0.2s",
+              "&:hover": {
+                backgroundColor: "#333",
+                fontWeight: "bold",
+                color: "#fff",
+              },
+            }}>
+            {category.name}
+          </MenuItem>
+        ))}
       </Menu>
     </Box>
   );
+};
+
+const buttonStyle = {
+  color: "inherit",
+  "&:hover": {
+    backgroundColor: "#333",
+    color: "#fff",
+  },
 };
 
 export default NavMenu;

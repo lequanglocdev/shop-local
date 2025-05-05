@@ -18,32 +18,32 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { useListProductsQuery } from "@/services/api/product";
 
-const navCategories = [
-  {
-    title: "SẢN PHẨM BÁN CHẠY",
-    description: [
-      "ÁO THUN",
-      "ÁO SƠ MI",
-      "ÁO KHOÁC",
-      "QUẦN DÀI",
-      "QUẦN SHORTS",
-      "PHỤ KIỆN",
-    ],
-    showButton: true,
-  },
-  {
-    title: "SẢN PHẨM MỚI NHẤT",
-    description: [
-      "ÁO THUN",
-      "ÁO SƠ MI",
-      "ÁO KHOÁC",
-      "QUẦN DÀI",
-      "QUẦN SHORTS",
-      "PHỤ KIỆN",
-    ],
-    showButton: true,
-  },
-];
+// const navCategories = [
+//   {
+//     title: "SẢN PHẨM BÁN CHẠY",
+//     description: [
+//       "ÁO THUN",
+//       "ÁO SƠ MI",
+//       "ÁO KHOÁC",
+//       "QUẦN DÀI",
+//       "QUẦN SHORTS",
+//       "PHỤ KIỆN",
+//     ],
+//     showButton: true,
+//   },
+//   {
+//     title: "SẢN PHẨM MỚI NHẤT",
+//     description: [
+//       "ÁO THUN",
+//       "ÁO SƠ MI",
+//       "ÁO KHOÁC",
+//       "QUẦN DÀI",
+//       "QUẦN SHORTS",
+//       "PHỤ KIỆN",
+//     ],
+//     showButton: true,
+//   },
+// ];
 
 const SwiperProducts = () => {
   const navigate = useNavigate();
@@ -65,7 +65,7 @@ const SwiperProducts = () => {
 
   return (
     <>
-      {navCategories.map((category, index) => (
+      {/* {navCategories.map((category, index) => (
         <div key={index}>
           <Stack className={styles.topSellingProducts}>
             <h3>{category.title}</h3>
@@ -94,8 +94,7 @@ const SwiperProducts = () => {
             modules={[Autoplay, Pagination, Navigation]}
             style={{
               margin: "50px 0",
-            }}
-          >
+            }}>
             {(dataProducts?.products || []).map((product) => (
               <SwiperSlide key={product.id}>
                 <Card onClick={() => navigate(`/productDetails/${product.id}`)}>
@@ -121,16 +120,14 @@ const SwiperProducts = () => {
                           display: "flex",
                           flexDirection: "row",
                           alignItems: "center",
-                        }}
-                      >
+                        }}>
                         <Typography
                           variant="body2"
                           sx={{
                             color: "text.secondary",
                             textDecoration: "line-through",
                             fontSize: "1rem",
-                          }}
-                        >
+                          }}>
                           ${product.price}
                         </Typography>
                         <Typography
@@ -139,8 +136,7 @@ const SwiperProducts = () => {
                             color: "text.primary",
                             fontSize: "1.2rem",
                             marginLeft: "10px",
-                          }}
-                        >
+                          }}>
                           ${product.price}
                         </Typography>
                       </Typography>
@@ -150,26 +146,8 @@ const SwiperProducts = () => {
               </SwiperSlide>
             ))}
           </Swiper>
-
-          {category.showButton && (
-            <Stack alignItems={"center"}>
-              <Button
-                variant="contained"
-                size="large"
-                sx={{
-                  backgroundColor: "var(--footer-background-color)",
-                  fontSize: "1rem",
-                  marginBottom: "100px",
-                  padding: "12px 24px",
-                }}
-                onClick={handleClick}
-              >
-                XEM THÊM
-              </Button>
-            </Stack>
-          )}
         </div>
-      ))}
+      ))} */}
     </>
   );
 };

@@ -1,6 +1,6 @@
 // layouts/DashboardLayout/index.jsx
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -14,6 +14,7 @@ import {
   IconButton,
   Switch,
   Menu,
+  Button,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import CategoryIcon from "@mui/icons-material/Category";
@@ -32,6 +33,8 @@ import {
   Place,
   Store,
 } from "@mui/icons-material";
+import { useDispatch } from "react-redux";
+import { resetStore } from "@/store";
 
 const drawerWidth = 240;
 
@@ -40,8 +43,16 @@ const DashboardLayoutWrapper = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { toggleTheme, mode } = useTheme();
 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
+  };
+
+  const handleLogout = () => {
+    dispatch(resetStore());
+    navigate("/");
   };
 
   const navigationItems = [
@@ -170,6 +181,18 @@ const DashboardLayoutWrapper = ({ children }) => {
           </Link>
         ))}
       </List>
+      <Button
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "#0984e3",
+          color: "#fff",
+        }}
+        onClick={handleLogout}>
+        Đăng xuất
+      </Button>
     </div>
   );
 

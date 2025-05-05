@@ -1,28 +1,19 @@
-import { Link, useLocation } from "react-router-dom";
+/* eslint-disable react/prop-types */
+import { Link, useLocation, useParams } from "react-router-dom";
 
-const menuItems = [
-  { path: "/accountInform/profile", label: "Hồ sơ cá nhân" },
-  { path: "/accountInform/changePassword", label: "Đổi mật khẩu" },
-  { path: "/accountInform/address", label: "Địa chỉ" },
-];
-const AccountSideBar = () => {
+const AccountSideBar = ({ id }) => {
   const location = useLocation();
+  const menuItems = [
+    { path: `/accountInform/address/${id}`, label: "Địa chỉ" },
+    { path: `/accountInform/profile/${id}`, label: "Hồ sơ cá nhân" },
+  ];
 
   return (
-    <>
-      <h2
-        style={{
-          fontSize: "1.8rem",
-          width: "100%",
-        }}
-      >
-        Thông tin tài khoản
-      </h2>
-
+    <div>
       {menuItems.map((item) => (
         <Link
-          to={item.path}
           key={item.path}
+          to={item.path}
           style={{
             textDecoration: "none",
             color:
@@ -32,12 +23,11 @@ const AccountSideBar = () => {
             lineHeight: location.pathname === item.path ? "24px" : "20px",
             padding: "8px 0 8px 30px",
             display: "block",
-          }}
-        >
+          }}>
           {item.label}
         </Link>
       ))}
-    </>
+    </div>
   );
 };
 

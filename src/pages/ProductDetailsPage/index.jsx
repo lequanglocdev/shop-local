@@ -1,149 +1,157 @@
 import {
-  CircularProgress,
+  Box,
+  Card,
+  CardContent,
   Container,
   Grid,
-  Stack,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import axios from "axios";
 
-import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-
-import ProductActions from "./shared/ProductActions";
-import ProductBrand from "./shared/ProductBrand";
-import ProductColorSection from "./shared/ProductColorSection";
-import ProductImage from "./shared/ProductImage";
-import ProductPrice from "./shared/ProductPrice";
-import ProductQuantitySelection from "./shared/ProductQuantitySelection";
-import ProductSizeSelection from "./shared/ProductSizeSelection";
-import ProductStockKeepingUnit from "./shared/ProductStockKeepingUnit";
-import ProductTitle from "./shared/ProductTitle";
-import { useGetProductByIdQuery } from "@/services/api/product";
-
-const buttonOptionSizes = ["S", "M", "L", "XL"];
+import Footer from "../../components/Footer";
+import banner from "@/assets/images/backgroundFashions/background-fashion.jpg";
+import styles from "./style.module.css";
 
 const ProductDetails = () => {
   const { id } = useParams();
-  const [quantity, setQuantity] = useState(1);
-  const [colors, setColors] = useState("");
-  const [sizes, setSizes] = useState("");
+  const location = useLocation();
+  const passedImageUrl = location.state?.imageUrl || null;
 
-  // Gọi API để lấy chi tiết sản phẩm
-  const { data: product, isLoading, error } = useGetProductByIdQuery(id);
+  const [imageUrl, setImageUrl] = useState(passedImageUrl);
+  const [variants, setVariants] = useState([]);
 
-  const handleIncreaseQuantity = () => {
-    setQuantity(quantity + 1);
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
 
-  const handleDecreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
+    // Nếu không có imageUrl từ state (ví dụ người dùng reload), gọi lại API để lấy
+    if (!imageUrl) {
+      axios
+        .get(`http://localhost:8080/adamstore/v1/products/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const fallbackUrl = res.data.result.productImages?.[0]?.imageUrl;
+          setImageUrl(fallbackUrl);
+        })
+        .catch((err) => {
+          console.error("Lỗi khi lấy thông tin sản phẩm:", err);
+        });
     }
-  };
 
-  const handleSelectColor = (color) => {
-    setColors(color);
-  };
+    // Gọi variants
+    axios
+      .get(
+        `http://localhost:8080/adamstore/v1/products/${id}/product-variants`,
+        {
+          params: { pageNo: 1, pageSize: 10 },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+      .then((res) => {
+        const items = res.data.result.items;
+        console.log(">>>>>>>", items);
+        const grouped = items.reduce((acc, item) => {
+          const colorName = item.color.name.trim();
+          if (!acc[colorName]) {
+            acc[colorName] = {
+              color: item.color,
+              productName: item.product.name,
+              sizes: [],
+            };
+          }
 
-  const handleSelectSize = (size) => {
-    setSizes(size);
-  };
+          acc[colorName].sizes.push({
+            size: item.size,
+            price: item.price,
+            quantity: item.quantity,
+            isAvailable: item.isAvailable,
+          });
 
-  // Xử lý trạng thái loading và lỗi
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <Container maxWidth="lg">
-          <Stack
-            sx={{
-              m: "80px 0",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <CircularProgress />
-            <Typography sx={{ mt: 2 }}>Đang tải sản phẩm...</Typography>
-          </Stack>
-        </Container>
-        <Footer />
-      </>
-    );
-  }
+          return acc;
+        }, {});
 
-  if (error || !product) {
-    return (
-      <>
-        <Header />
-        <Container maxWidth="lg">
-          <Typography align="center" color="error" sx={{ m: "80px 0" }}>
-            {error
-              ? `Lỗi khi tải sản phẩm: ${
-                  error?.data?.message || "Lỗi không xác định"
-                }`
-              : "Sản phẩm không tồn tại"}
-          </Typography>
-        </Container>
-        <Footer />
-      </>
-    );
-  }
+        setVariants(Object.values(grouped));
+      })
+      .catch((err) => {
+        console.error("Lỗi khi lấy product variants:", err);
+      });
+  }, [id, imageUrl]);
 
   return (
     <>
       <Header />
-      <Container maxWidth="lg">
-        <Stack sx={{ m: "80px 0" }}>
-          <Grid container spacing={4}>
-            <Grid item xl={6} lg={6}>
-              <ProductImage products={product} loading={isLoading} />
-            </Grid>
+      <img
+        src={banner}
+        alt="banner"
+        width="100%"
+        height={300}
+        className={styles.image}
+      />
+      <Container
+        sx={{
+          width: "100%",
+          mt: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 20,
+        }}>
+        {imageUrl && (
+          <div className={styles.productLeft}>
+            <img
+              src={imageUrl}
+              alt="Ảnh sản phẩm"
+              className={styles.imageProductLeft}
+            />
+          </div>
+        )}
+        <div>
+          <h3>ÁO VEST BE TRƠN - AV367</h3>
+          <p>105 lượt mua</p>
+          <p>2.555.555đ</p>
+          <p>Loại áo: Áo sơ mi</p>
+          <p>Size: M L S XL XLL</p>
+          <p>số lượng 1</p>
+        </div>
 
-            <Grid item xl={6} lg={6}>
-              <ProductTitle products={product} loading={isLoading} />
-
-              <Stack
-                direction={"row"}
-                alignItems={"center"}
-                sx={{ m: "30px 0" }}
-              >
-                <ProductPrice products={product} loading={isLoading} />
-              </Stack>
-
-              <ProductStockKeepingUnit products={product} loading={isLoading} />
-              <ProductBrand />
-              <ProductColorSection
-                products={product}
-                loading={isLoading}
-                colors={colors}
-                handleSelectColor={handleSelectColor}
-              />
-              <ProductQuantitySelection
-                products={product}
-                loading={isLoading}
-                quantity={quantity}
-                handleIncreaseQuantity={handleIncreaseQuantity}
-                handleDecreaseQuantity={handleDecreaseQuantity}
-              />
-              <ProductSizeSelection
-                products={product}
-                loading={isLoading}
-                sizes={sizes}
-                buttonOptionSizes={buttonOptionSizes}
-                handleSelectSize={handleSelectSize}
-              />
-              <ProductActions
-                products={product}
-                loading={isLoading}
-                selectedQuantity={quantity}
-                selectedColor={colors}
-                selectedSize={sizes}
-              />
-            </Grid>
-          </Grid>
-        </Stack>
+        {/* {variants.length === 0 ? (
+          <Typography>Đang tải thông tin sản phẩm...</Typography>
+        ) : (
+          <Box>
+            {variants.map((group, idx) => (
+              <Box key={idx} sx={{ mb: 4 }}>
+                <Typography variant="h6" color="primary">
+                  Màu: {group.color.name}
+                </Typography>
+                <Typography
+                  variant="subtitle1"
+                  fontWeight="bold"
+                  sx={{ mb: 1 }}>
+                  {group.productName}
+                </Typography>
+                <Grid container spacing={2}>
+                  {group.sizes.map((s, index) => (
+                    <Grid item key={index}>
+                      <Card sx={{ p: 2, minWidth: 150 }}>
+                        <Typography>Kích thước: {s.size.name}</Typography>
+                        <Typography>
+                          Giá: {s.price.toLocaleString()}đ
+                        </Typography>
+                        <Typography>Số lượng: {s.quantity}</Typography>
+                        <Typography>
+                          {s.isAvailable ? "Còn hàng" : "Hết hàng"}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            ))}
+          </Box>
+        )} */}
       </Container>
       <Footer />
     </>

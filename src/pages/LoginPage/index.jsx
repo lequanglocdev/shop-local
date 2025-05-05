@@ -20,6 +20,7 @@ import styles from "./index.module.css";
 import { useLoginMutation, useGetMyInfoQuery } from "@/services/api/auth";
 import { setUser } from "@/store/redux/user/reducer";
 import customTheme from "@/components/CustemTheme";
+import axios from "axios";
 
 const Login = () => {
   const outerTheme = useTheme();
@@ -119,34 +120,51 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     setError("");
-
     try {
-      const response = await login({
-        email: data?.email,
-        password: data?.password,
-      }).unwrap();
+      // Gọi API đăng nhập
+      const response = await axios.post(
+        "http://localhost:8080/adamstore/v1/auth/login",
+        {
+          email: data.email,
+          password: data.password,
+        }
+      );
 
-      if (response) {
-        localStorage.setItem("accessToken", response.result.accessToken);
+      const { accessToken, refreshToken, email, authenticated } =
+        response.data.result;
 
-        const newUserData = {
-          code: response.code,
-          message: response.message,
-          result: {
-            accessToken: response.result.accessToken,
-            refreshToken: response.result.refreshToken,
-            authenticated: response.result.authenticated,
-            email: response.result.email,
+      localStorage.setItem("accessToken", accessToken);
+
+      // Gọi API lấy thông tin người dùng
+      const myInfoResponse = await axios.get(
+        "http://localhost:8080/adamstore/v1/auth/myInfo",
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
           },
-        };
+        }
+      );
 
-        setUserData(newUserData);
-        refetchMyInfo(); // Gọi /v1/auth/myInfo sau khi đăng nhập thành công
-      }
+      const role = myInfoResponse.data.result.roles?.[0]?.name || "USER";
+
+      // Cập nhật userData
+      const newUserData = {
+        code: response.data.code,
+        message: response.data.message,
+        result: {
+          accessToken,
+          refreshToken,
+          authenticated,
+          email,
+          role,
+        },
+      };
+
+      setUserData(newUserData);
+      handleShowSnackbar(true);
     } catch (error) {
-      // Chỉ hiển thị "Đăng nhập thất bại !" nếu lỗi từ login (đăng nhập sai)
-      handleShowSnackbar(false);
-      console.log("Login failed:", error);
+      console.error("Login failed:", error);
+      handleShowSnackbar(false, "Đăng nhập thất bại!");
     }
   };
 
