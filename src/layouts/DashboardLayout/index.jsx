@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // layouts/DashboardLayout/index.jsx
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -62,11 +63,11 @@ const DashboardLayoutWrapper = ({ children }) => {
       title: "Sản phẩm",
       icon: <Inventory />,
     },
-    {
-      path: "/admin/productImagesManagement",
-      title: "Hình ảnh sản phẩm",
-      icon: <Image />,
-    },
+    // {
+    //   path: "/admin/productImagesManagement",
+    //   title: "Hình ảnh sản phẩm",
+    //   icon: <Image />,
+    // },
     {
       path: "/admin/productVariantsManagement",
       title: "Biến thể sản phẩm",

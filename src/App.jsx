@@ -96,10 +96,10 @@ const App = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Admin />} />
           <Route path="productsManagement" element={<ProductsManagement />} />
-          <Route
+          {/* <Route
             path="productImagesManagement"
             element={<ProductImagesManagement />}
-          />
+          /> */}
           <Route
             path="productVariantsManagement"
             element={<ProductVariantsManagement />}
