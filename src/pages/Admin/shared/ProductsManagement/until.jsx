@@ -1,3 +1,10 @@
+// eslint-disable-next-line import/order
+import { IconButton } from "@mui/material";
+// eslint-disable-next-line import/order
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+
 export const columns = [
   { field: "id", headerName: "ID", width: 70 },
   { field: "name", headerName: "Tên", width: 200 },
@@ -85,9 +92,38 @@ export const columns = [
   {
     field: "actions",
     headerName: "Hành động",
-    width: 160,
-    disableColumnMenu: true,
+    width: 120,
     sortable: false,
+    filterable: false,
+    renderCell: (params) => {
+      const { row } = params;
+      const isDisabled = row.status === "Ngưng hoạt động";
+      return (
+        <>
+          <IconButton
+            color="primary"
+            onClick={() => params.row.onEdit(params.row)}
+            title="Chỉnh sửa">
+            <EditIcon />
+          </IconButton>
+          {isDisabled ? (
+            <IconButton
+              color="success"
+              onClick={() => row.onRestoreClick(row.id, row.name)} // Gọi function khôi phục
+              title="Khôi phục">
+              <RestartAltIcon />
+            </IconButton>
+          ) : (
+            <IconButton
+              color="error"
+              onClick={() => row.onDelete(row.id)}
+              title="Xóa">
+              <DeleteIcon />
+            </IconButton>
+          )}
+        </>
+      );
+    },
   },
 ];
 
@@ -113,28 +149,22 @@ export const customLocaleText = {
 };
 
 export const validateProduct = ({
-  productName,
-  productDes,
-  productPrice,
-  productQuantity,
+  name,
+  description,
+  price,
+  quantity,
   selectedCategoryId,
   selectedSizeId,
   selectedColorId,
-  productImage,
+  images,
 }) => {
   const newErrors = {};
 
-  if (!productName.trim())
-    newErrors.productName = "Tên sản phẩm không được để trống";
-  if (!productDes.trim())
-    newErrors.productDes = "Tên sản phẩm không được để trống";
-  if (!productPrice || isNaN(Number(productPrice)) || Number(productPrice) <= 0)
+  if (!name.trim()) newErrors.productName = "Tên sản phẩm không được để trống";
+  if (!description.trim()) newErrors.productDes = "Mô tả không được để trống";
+  if (!price || isNaN(Number(price)) || Number(price) <= 0)
     newErrors.productPrice = "Giá phải là số lớn hơn 0";
-  if (
-    !productQuantity ||
-    isNaN(Number(productQuantity)) ||
-    Number(productQuantity) < 1
-  )
+  if (!quantity || isNaN(Number(quantity)) || Number(quantity) < 1)
     newErrors.productQuantity = "Số lượng phải là số nguyên >= 1";
   if (!selectedCategoryId)
     newErrors.selectedCategoryId = "Vui lòng chọn danh mục";
@@ -142,7 +172,7 @@ export const validateProduct = ({
     newErrors.selectedSizeId = "Vui lòng chọn ít nhất 1 kích thước";
   if (!selectedColorId || selectedColorId.length === 0)
     newErrors.selectedColorId = "Vui lòng chọn ít nhất 1 màu sắc";
-  if (!productImage || productImage.length === 0)
+  if (!images || images.length === 0)
     newErrors.productImage = "Vui lòng chọn ít nhất 1 hình ảnh";
 
   return newErrors;
